@@ -4,7 +4,7 @@ import os
 import datetime
 from dateutil.parser import parse
 
-#待優化項目：可以隔夜停車、離場時間微秒的位數、按確認不會一直跑東西出來
+#待優化項目： 按確認不會一直跑東西出來QQ
 #使用前請先確認imgFolderPath是圖片放置區／carinfoobject取的路徑是資訊放置處
 #時間格式範例： 2019-05-08 23:58:09
 
