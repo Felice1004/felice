@@ -2,8 +2,11 @@ from tkinter import *
 import cv2
 import os
 import datetime
+from dateutil.parser import parse
 
+#待優化項目：可以隔夜停車、離場時間微秒的位數、按確認不會一直跑東西出來
 #使用前請先確認imgFolderPath是圖片放置區／carinfoobject取的路徑是資訊放置處
+#時間格式範例： 2019-05-08 23:58:09
 
 imgFolderPath = "C:\\Users\\ASUS\Pictures\\"   #放檔案資料夾路徑
     #---------------------處理車牌TXT資料-----------#
@@ -22,7 +25,7 @@ print("carinfo檔案處理完成")
 
 
 class Checkout():
-    def reset(self):
+    def reset(self):#
         self.e1.delete(0,END)
     def searchagain(self):
         self.l2.pack_forget()
@@ -30,7 +33,7 @@ class Checkout():
         self.l3.pack_forget()
         self.l4.pack_forget()
         
-    def confirm(self):
+    def confirm(self):#
         boardnum = self.board.get()
         if not os.path.exists(imgFolderPath+boardnum+".jpg"):
             print("找不到您的車牌！請重新輸入！")
@@ -39,29 +42,59 @@ class Checkout():
             self.l2.pack()
             self.l3 = Label(self.checkout, text = "入場時間: " + carinfodict[boardnum])
             self.l3.pack()
-            self.currentTime = datetime.datetime.now().time()
-            self.l4 = Label(self.checkout, text = "離場時間: " + str(self.currentTime))
+            now = datetime.datetime.now()
+            self.currentTime = str(now.strftime("%Y-%m-%d %H:%M:%S"))
+            self.l4 = Label(self.checkout, text = "離場時間: " + self.currentTime)
             self.l4.pack()
             fee = self.fee()
             self.l5 = Label(self.checkout, text = "費用" + str(fee) + "元")
             self.l5.pack()
             self.b3 = Button(self.checkout, text = "重新查詢", command = self.searchagain)
             self.b3.pack()
-    def fee(self):##########################################################
+            
+    def fee(self):###########################################
         fee = 0
         boardnum = self.board.get()
-        entertime = carinfodict[boardnum] #str
-        entertimelist = entertime.split(":")
-        leavetime = str(self.currentTime) #str
-        leavetimelist = leavetime.split(":")
-        hour = eval(leavetimelist[0]) - eval(entertimelist[0])
-        minute = eval(leavetimelist[1]) - eval(entertimelist[1])
-        if abs(minute) > 30:
-            hour = abs(hour) +1
-            fee = hour* 40
-        else:
-            fee = abs(hour) * 40
+        #========分析入場時間==========#
+        entertime = carinfodict[boardnum]###########
+        tmpe = entertime.split(" ")
+        eyear,emonth,eday = self.parseDate(tmpe[0])#tmp[0]放的是日期
+        ehour,eminute,esecond = self.parseTime(tmpe[1])
+        
+        #=========擷取離場時間========#
+        tmpl= self.currentTime.split(" ")
+        lyear, lmonth, lday = self.parseDate(tmpl[0])
+        lhour, lminute, lsecond = self.parseTime(tmpl[1])
+        
+        #==========計算費用============#
+        
+        enter = datetime.datetime(eyear, emonth, eday, ehour, eminute, esecond)
+        leave = datetime.datetime(lyear, lmonth, lday, lhour, lminute, lsecond)
+        
+        
+        hour = int(lhour) - int(ehour)
+        minute = int(lminute) - int(eminute)
+        second = int(lsecond) - int(esecond)
+        
+        day = (leave - enter).days
+        if (day > 0):
+            fee = day * 24 * 40 + (24-int(ehour))*40 + int(lhour)*40
+        elif (day == 0):
+            fee = hour*40
         return fee
+        
+    def parseDate(self,date):
+        tmp = date.split("-")
+        year = tmp[0]
+        month = tmp[1]
+        day = tmp[2]
+        return int(year), int(month), int(day)
+    def parseTime(self,time):
+        tmp = time.split(":")
+        hour = tmp[0]
+        minute = tmp[1]
+        second = tmp[2]
+        return int(hour), int(minute), int(second)
         
         
     def __init__(self):
