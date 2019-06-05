@@ -1,12 +1,16 @@
+#待優化項目： 按確認不會一直跑東西出來QQ
+#使用前請先確認imgFolderPath是圖片放置區／carinfoobject取的路徑是資訊放置處
+#時間格式範例： 2019-05-08 23:58:09
+#車牌存放資訊為txt檔案，格式為：MMM8888,2019-06-02 05:46:27
+
 from tkinter import *
+from tkinter import messagebox
 import cv2
 import os
 import datetime
 from dateutil.parser import parse
 
-#待優化項目： 按確認不會一直跑東西出來QQ
 #使用前請先確認imgFolderPath是圖片放置區／carinfoobject取的路徑是資訊放置處
-#時間格式範例： 2019-05-08 23:58:09
 
 imgFolderPath = "C:\\Users\\ASUS\Pictures\\"   #放檔案資料夾路徑
     #---------------------處理車牌TXT資料-----------#
@@ -25,32 +29,34 @@ print("carinfo檔案處理完成")
 
 
 class Checkout():
+    
     def reset(self):#
         self.e1.delete(0,END)
-    def searchagain(self):
-        self.l2.pack_forget()
-        self.b3.pack_forget()
-        self.l3.pack_forget()
-        self.l4.pack_forget()
         
+    def searchagain(self):      
+        self.b3.pack_forget()
+        self.l2["text"] = ""
+        self.l3["text"] = ""
+        self.l4["text"]= ""
+        self.l5["text"] = "" 
+    def confirmbutton(self):      
+        self.b3.pack()    
     def confirm(self):#
+        self.b3.pack_forget()
         boardnum = self.board.get()
         if not os.path.exists(imgFolderPath+boardnum+".jpg"):
-            print("找不到您的車牌！請重新輸入！")
+            messagebox.showinfo("錯誤提醒","車牌號碼不存在！")
         if os.path.exists(imgFolderPath+boardnum+".jpg"):
-            self.l2 = Label(self.checkout, text = "\n您的車牌號碼是 " + boardnum)
-            self.l2.pack()
-            self.l3 = Label(self.checkout, text = "入場時間: " + carinfodict[boardnum])
-            self.l3.pack()
+            self.l2["text"] = "\n您的車牌號碼是 " + boardnum
+            self.l3["text"] = "入場時間: " + carinfodict[boardnum]
             now = datetime.datetime.now()
             self.currentTime = str(now.strftime("%Y-%m-%d %H:%M:%S"))
-            self.l4 = Label(self.checkout, text = "離場時間: " + self.currentTime)
+            self.l4["text"]="離場時間: " + self.currentTime
             self.l4.pack()
             fee = self.fee()
-            self.l5 = Label(self.checkout, text = "費用" + str(fee) + "元")
-            self.l5.pack()
-            self.b3 = Button(self.checkout, text = "重新查詢", command = self.searchagain)
-            self.b3.pack()
+            self.l5["text"] = "費用" + str(fee) + "元"
+            self.confirmbutton()
+    
             
     def fee(self):###########################################
         fee = 0
@@ -78,7 +84,7 @@ class Checkout():
         
         day = (leave - enter).days
         if (day > 0):
-            fee = day * 24 * 40 + (24-int(ehour))*40 + int(lhour)*40
+            fee = (day-1) * 24 * 40 + (24-int(ehour))*40 + int(lhour)*40
         elif (day == 0):
             fee = hour*40
         return fee
@@ -113,8 +119,17 @@ class Checkout():
         self.b1.pack()
         self.b2 = Button(self.checkout, text = "重設", command = self.reset)
         self.b2.pack()
-        self.checkout.mainloop()
         
+        self.l2 = Label(self.checkout, text = "")#顯示車牌號碼
+        self.l2.pack()
+        self.l3 = Label(self.checkout, text = "")#入場時間
+        self.l3.pack()
+        self.l4 = Label(self.checkout, text = "")#離場時間
+        self.l4.pack()
+        self.l5 = Label(self.checkout, text = "")#費用
+        self.l5.pack()
+        self.b3 = Button(self.checkout, text = "重新查詢", command = self.searchagain)
+        self.checkout.mainloop()
 
 
 ck = Checkout()
